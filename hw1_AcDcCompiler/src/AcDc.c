@@ -79,6 +79,75 @@ Token getNumericToken( FILE *source, char c )
     return token;
 }
 
+Token getFullToken( FILE *source, char c)
+{
+	Token token;
+    int i = 0;
+	token.tok[i++] = c;
+	c = fgetc(source);
+
+    while( isalnum(c) ){
+        token.tok[i++] = c;
+        c = fgetc(source);
+    }
+
+	ungetc(c, source);
+	token.tok[i] = '\0';
+
+	if ( i > 256 ) {
+		printf("Variable longer than 256 characters: %s\n", token.tok);
+		exit(1);
+	}
+	if ( i > 1) {
+		token.type = Alphabet;
+		return token;
+	} else {
+		if( islower( token.tok[0] ) ) {
+			switch(token.tok[0]) {
+				case 'f':
+					token.type = FloatDeclaration;
+					break;
+				case 'i':
+					token.type = IntegerDeclaration;
+					break;
+				case 'p':
+					token.type = PrintOp;
+					break;
+				default: 
+					token.type = Alphabet;
+					break;
+			}
+			return token;
+		}
+
+		switch(token.tok[0]){
+			case '=':
+				token.type = AssignmentOp;
+				return token;
+			case '+':
+				token.type = PlusOp;
+				return token;
+			case '-':
+				token.type = MinusOp;
+				return token;
+			case '*':
+				token.type = MulOp;
+				return token;
+			case '/':
+				token.type = DivOp;
+				return token;
+			case EOF:
+				token.type = EOFsymbol;
+				token.tok[0] = '\0';
+				return token;
+			default:
+				printf("Invalid character : %c\n", c);
+				exit(1);
+		}
+		return token;
+	}
+}
+
 Token scanner( FILE *source )
 {
     char c;
@@ -92,44 +161,7 @@ Token scanner( FILE *source )
         if( isdigit(c) )
             return getNumericToken(source, c);
 
-        token.tok[0] = c;
-        token.tok[1] = '\0';
-        if( islower(c) ){
-            if( c == 'f' )
-                token.type = FloatDeclaration;
-            else if( c == 'i' )
-                token.type = IntegerDeclaration;
-            else if( c == 'p' )
-                token.type = PrintOp;
-            else
-                token.type = Alphabet;
-            return token;
-        }
-
-        switch(c){
-            case '=':
-                token.type = AssignmentOp;
-                return token;
-            case '+':
-                token.type = PlusOp;
-                return token;
-            case '-':
-                token.type = MinusOp;
-                return token;
-            case '*':
-                token.type = MulOp;
-                return token;
-            case '/':
-                token.type = DivOp;
-                return token;
-            case EOF:
-                token.type = EOFsymbol;
-                token.tok[0] = '\0';
-                return token;
-            default:
-                printf("Invalid character : %c\n", c);
-                exit(1);
-        }
+		return getFullToken(source, c);
     }
 
     token.tok[0] = '\0';
@@ -346,7 +378,7 @@ Declaration makeDeclarationNode( Token declare_type, Token identifier )
         default:
             break;
     }
-    tree_node.name = identifier.tok[0];
+	strncpy(tree_node.name, identifier.tok, sizeof(tree_node.name));
 
     return tree_node;
 }
@@ -418,7 +450,7 @@ void InitializeTable( SymbolTable *table )
         table->table[i] = Notype;
 }
 
-void add_table( SymbolTable *table, char c, DataType t )
+void add_table( SymbolTable *table, char* c, DataType t )
 {
     int index = (int)(c - 'a');
 
