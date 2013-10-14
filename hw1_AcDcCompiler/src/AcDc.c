@@ -540,6 +540,8 @@ void checkstmt( Statement *stmt, SymbolTable * table )
         stmt->stmt.assign.type = lookup_table(table, assign.id);
         if (assign.expr->type == Float && stmt->stmt.assign.type == Int) {
             printf("error : can't convert float to integer\n");
+        } else {
+            convertType(assign.expr, stmt->stmt.assign.type);
         }
     }
     else if (stmt->type == Print){
