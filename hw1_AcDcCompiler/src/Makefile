@@ -1,5 +1,5 @@
 All: mkdir
-	gcc AcDc.c -o ../bin/AcDc
+	gcc -g AcDc.c -o ../bin/AcDc
 mkdir:
 	mkdir -p ../bin
 clean:
