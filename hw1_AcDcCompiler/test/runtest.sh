@@ -7,10 +7,10 @@ if [ $# -lt 1 ]; then
 	echo "Example: $0 1"
 	exit 1
 fi
-if [ ! -e sample${1}.ac ]; then
-	echo "sample$1.ac doesn't exist"
+if [ ! -e $1 ]; then
+	echo "$1 doesn't exist"
 	exit 1
 fi
-echo "test sample$1.ac"
-$BIN/AcDc ./sample$1.ac ./output$1.dc
+echo "test $1"
+$BIN/AcDc $1 ${1%.*}.out
 
