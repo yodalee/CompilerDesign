@@ -75,14 +75,12 @@ typedef struct Expression{
     DataType type;
 }Expression;
 
-
 /* For one assignment statement */
 typedef struct AssignmentStatement{
     char id[257];
     Expression *expr;
     DataType type;      /* For type checking to store the type of all expression on the right. */
 }AssignmentStatement;
-
 
 /* For stmt production or say one statement*/
 typedef struct Statement{
@@ -133,12 +131,13 @@ SymbolTable build( Program program );
 void convertType( Expression * old, DataType type );
 DataType generalize( Expression *left, Expression *right );
 DataType lookup_table( SymbolTable *table, char* s );
+char lookup_symbol( SymbolTable *table, char* s );
 void checkexpression( Expression * expr, SymbolTable * table );
 void checkstmt( Statement *stmt, SymbolTable * table );
 void check( Program *program, SymbolTable * table);
 void fprint_op( FILE *target, ValueType op );
-void fprint_expr( FILE *target, Expression *expr );
-void gencode( Program prog, FILE * target );
+void fprint_expr( FILE *target, SymbolTable* table, Expression *expr );
+void gencode( Program prog, SymbolTable *table, FILE * target );
 
 void print_expr( Expression *expr );
 void test_parser( FILE *source );
