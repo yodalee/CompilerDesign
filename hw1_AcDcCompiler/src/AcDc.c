@@ -257,27 +257,19 @@ Expression *parseExpressionTail( FILE *source, Expression *lvalue )
             expr = (Expression *)malloc( sizeof(Expression) );
             (expr->v).type = PlusNode;
             (expr->v).val.op = Plus;
-            expr->leftOperand = lvalue;
-            expr->rightOperand = parseValue(source);
-            return parseExpressionTail(source, expr);
         case MinusOp:
             expr = (Expression *)malloc( sizeof(Expression) );
             (expr->v).type = MinusNode;
             (expr->v).val.op = Minus;
-            expr->leftOperand = lvalue;
-            expr->rightOperand = parseValue(source);
-            return parseExpressionTail(source, expr);
 		case MulOp:
             expr = (Expression *)malloc( sizeof(Expression) );
             (expr->v).type = MulNode;
             (expr->v).val.op = Mul;
-            expr->leftOperand = lvalue;
-            expr->rightOperand = parseValue(source);
-            return parseExpressionTail(source, expr);
 		case DivOp:
             expr = (Expression *)malloc( sizeof(Expression) );
             (expr->v).type = DivNode;
             (expr->v).val.op = Div;
+
             expr->leftOperand = lvalue;
             expr->rightOperand = parseValue(source);
             return parseExpressionTail(source, expr);
@@ -306,27 +298,19 @@ Expression *parseExpression( FILE *source, Expression *lvalue )
             expr = (Expression *)malloc( sizeof(Expression) );
             (expr->v).type = PlusNode;
             (expr->v).val.op = Plus;
-            expr->leftOperand = lvalue;
-            expr->rightOperand = parseValue(source);
-            return parseExpressionTail(source, expr);
         case MinusOp:
             expr = (Expression *)malloc( sizeof(Expression) );
             (expr->v).type = MinusNode;
             (expr->v).val.op = Minus;
-            expr->leftOperand = lvalue;
-            expr->rightOperand = parseValue(source);
-            return parseExpressionTail(source, expr);
 		case MulOp:
             expr = (Expression *)malloc( sizeof(Expression) );
             (expr->v).type = MulNode;
             (expr->v).val.op = Mul;
-            expr->leftOperand = lvalue;
-            expr->rightOperand = parseValue(source);
-            return parseExpressionTail(source, expr);
 		case DivOp:
             expr = (Expression *)malloc( sizeof(Expression) );
             (expr->v).type = DivNode;
             (expr->v).val.op = Div;
+
             expr->leftOperand = lvalue;
             expr->rightOperand = parseValue(source);
             return parseExpressionTail(source, expr);
