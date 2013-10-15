@@ -62,12 +62,12 @@ typedef struct Value{
     }val;
 }Value;
 
-
 /* 
    The data structure of the expression tree.
    Recall how to deal with expression by tree 
    in data structure course.   
 */
+
 typedef struct Expression{
     Value v;
     struct Expression *leftOperand;
@@ -117,8 +117,10 @@ Declarations *makeDeclarationTree( Declaration decl, Declarations *decls );
 Declaration parseDeclaration( FILE *source, Token token );
 Declarations *parseDeclarations( FILE *source );
 Expression *parseValue( FILE *source );
-Expression *parseExpressionTail( FILE *source, Expression *lvalue );
+Expression *parseTerm( FILE *source, Expression *lvalue );
+Expression *parseTermTail( FILE *source, Expression *lvalue );
 Expression *parseExpression( FILE *source, Expression *lvalue );
+Expression *parseExpressionTail( FILE *source, Expression *lvalue );
 Statement makeAssignmentNode( char* id, Expression *v, Expression *expr_tail );
 Statement makePrintNode( char* id );
 Statements *makeStatementTree( Statement stmt, Statements *stmts );
