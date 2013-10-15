@@ -180,9 +180,9 @@ Declaration parseDeclaration( FILE *source, Token token )
         case FloatDeclaration:
         case IntegerDeclaration:
             token2 = scanner(source);
-            if (strcmp(token2.tok, "f") == 0 ||
-                    strcmp(token2.tok, "i") == 0 ||
-                    strcmp(token2.tok, "p") == 0) {
+            if (strncmp(token2.tok, "f", 1) == 0 ||
+                    strncmp(token2.tok, "i", 1) == 0 ||
+                    strncmp(token2.tok, "p", 1) == 0) {
                 printf("Syntax Error: %s cannot be used as id\n", token2.tok);
                 exit(1);
             }
@@ -319,7 +319,7 @@ Expression *parseTermTail( FILE *source, Expression *lvalue )
 			for (i = strlen(token.tok)-1; i >=0; --i) {
 				ungetc(token.tok[i], source);
 			}
-            return NULL;
+			return lvalue;
         case EOFsymbol:
             return NULL;
         default:
@@ -393,7 +393,7 @@ Expression *parseExpression( FILE *source, Expression *lvalue )
 			for (i = strlen(token.tok)-1; i >=0; --i) {
 				ungetc(token.tok[i], source);
 			}
-            return NULL;
+            return lvalue;
         case EOFsymbol:
             return NULL;
         default:
@@ -757,13 +757,11 @@ void fprint_expr( FILE *target, SymbolTable *table, Expression *expr)
                 fprintf(target,"Error In fprint_left_expr. (expr->v).type=%d\n",(expr->v).type);
                 break;
         }
-    }
-    else{
+    } else {
         fprint_expr(target, table, expr->leftOperand);
         if(expr->rightOperand == NULL){
             fprintf(target,"5k\n");
-        }
-        else{
+        } else {
             //	fprint_right_expr(expr->rightOperand);
             fprint_expr(target, table, expr->rightOperand);
             fprint_op(target, (expr->v).type);
@@ -785,21 +783,17 @@ void gencode(Program prog, SymbolTable* table, FILE * target)
                 break;
             case Assignment:
                 fprint_expr(target, table, stmt.stmt.assign.expr);
-                /*
-                   if(stmt.stmt.assign.type == Int){
-                   fprintf(target,"0 k\n");
-                   }
-                   else if(stmt.stmt.assign.type == Float){
-                   fprintf(target,"5 k\n");
-                   }*/
-
+				//if ( stmt.stmt.assign.type == Int ){
+				//	fprintf(target,"0 k\n");
+				//} else if ( stmt.stmt.assign.type == Float ){
+				//	fprintf(target,"5 k\n");
+				//}
                 fprintf(target,"s%c\n",lookup_symbol(table, stmt.stmt.assign.id));
                 fprintf(target,"0 k\n");
                 break;
         }
         stmts=stmts->rest;
     }
-
 }
 
 
