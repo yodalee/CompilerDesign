@@ -782,12 +782,10 @@ void gencode(Program prog, SymbolTable* table, FILE * target)
                 fprintf(target,"p\n");
                 break;
             case Assignment:
+				if ( stmt.stmt.assign.type == Float ){
+					fprintf(target,"5 k\n");
+				}
                 fprint_expr(target, table, stmt.stmt.assign.expr);
-				//if ( stmt.stmt.assign.type == Int ){
-				//	fprintf(target,"0 k\n");
-				//} else if ( stmt.stmt.assign.type == Float ){
-				//	fprintf(target,"5 k\n");
-				//}
                 fprintf(target,"s%c\n",lookup_symbol(table, stmt.stmt.assign.id));
                 fprintf(target,"0 k\n");
                 break;
