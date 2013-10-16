@@ -715,8 +715,12 @@ void checkexpression( Expression * expr, SymbolTable * table )
         checkexpression(left, table);
         checkexpression(right, table);
 
-		if (expr->leftOperand->v.type != Identifier &&\
-			expr->rightOperand->v.type != Identifier ) {
+		if (expr->leftOperand->v.type != Identifier && \
+			expr->rightOperand->v.type != Identifier && \
+			expr->leftOperand->leftOperand == NULL && \
+			expr->leftOperand->rightOperand == NULL && \
+			expr->rightOperand->leftOperand == NULL && \
+			expr->rightOperand->rightOperand == NULL ) {
 			constFolding( expr );
 		} else {
 			DataType type = generalize(left, right);
