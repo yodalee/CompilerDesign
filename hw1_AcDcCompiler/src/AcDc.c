@@ -764,7 +764,7 @@ void check( Program *program, SymbolTable * table )
 /***********************************************************************
   Code generation
  ************************************************************************/
-void fprint_op( FILE *target, ValueType op )
+void fprint_op( FILE *target, ValueType op, DataType ltype )
 {
     switch(op){
         case MinusNode:
@@ -777,6 +777,7 @@ void fprint_op( FILE *target, ValueType op )
             fprintf(target,"*\n");
             break;
         case DivNode:
+			if (ltype == Float) { fprintf(target, "5 k\n"); }
             fprintf(target,"/\n");
             break;
         default:
@@ -809,7 +810,7 @@ void fprint_expr( FILE *target, SymbolTable *table, Expression *expr)
         } else {
             //	fprint_right_expr(expr->rightOperand);
             fprint_expr(target, table, expr->rightOperand);
-            fprint_op(target, (expr->v).type);
+            fprint_op(target, (expr->v).type, expr->leftOperand->type);
         }
     }
 }
@@ -827,9 +828,6 @@ void gencode(Program prog, SymbolTable* table, FILE * target)
                 fprintf(target,"p\n");
                 break;
             case Assignment:
-				if ( stmt.stmt.assign.type == Float ){
-					fprintf(target,"5 k\n");
-				}
                 fprint_expr(target, table, stmt.stmt.assign.expr);
                 fprintf(target,"s%c\n",lookup_symbol(table, stmt.stmt.assign.id));
                 fprintf(target,"0 k\n");

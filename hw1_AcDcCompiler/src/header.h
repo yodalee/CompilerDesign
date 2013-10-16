@@ -139,7 +139,7 @@ void constFolding( Expression* expr );
 void checkexpression( Expression * expr, SymbolTable * table );
 void checkstmt( Statement *stmt, SymbolTable * table );
 void check( Program *program, SymbolTable * table);
-void fprint_op( FILE *target, ValueType op );
+void fprint_op( FILE *target, ValueType op, DataType ltype);
 void fprint_expr( FILE *target, SymbolTable* table, Expression *expr );
 void gencode( Program prog, SymbolTable *table, FILE * target );
 
