@@ -134,6 +134,8 @@ void convertType( Expression * old, DataType type );
 DataType generalize( Expression *left, Expression *right );
 DataType lookup_table( SymbolTable *table, char* s );
 char lookup_symbol( SymbolTable *table, char* s );
+float calConst(Operation op, float lval, float rval);
+void constFolding( Expression* expr );
 void checkexpression( Expression * expr, SymbolTable * table );
 void checkstmt( Statement *stmt, SymbolTable * table );
 void check( Program *program, SymbolTable * table);

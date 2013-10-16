@@ -623,6 +623,43 @@ DataType generalize( Expression *left, Expression *right )
     return Int;
 }
 
+float calConst(Operation op, float lval, float rval)
+{
+	switch(op){
+		case Plus:
+			return lval + rval;
+		case Minus:
+			return lval - rval;
+		case Mul:
+			return lval * rval;
+		case Div:
+			return lval / rval;
+	}
+}
+
+void constFolding( Expression* expr )
+{
+	Value lval = expr->leftOperand->v;
+	Value rval = expr->rightOperand->v;
+
+	(expr->v).type = FloatConst;
+	expr->type = FloatConst;
+	if (lval.type == IntConst && rval.type == IntConst) {
+		(expr->v).type = IntConst;
+		expr->type = IntConst;
+		(expr->v).val.ivalue = (int)calConst((expr->v).val.op, (float)lval.val.ivalue, rval.val.ivalue);
+	} else if (lval.type == FloatConst && rval.type == IntConst) {
+		(expr->v).val.fvalue = calConst((expr->v).val.op, lval.val.fvalue, (float)rval.val.ivalue);
+	} else if (lval.type == IntConst && rval.type == FloatConst) {
+		(expr->v).val.fvalue = calConst((expr->v).val.op, (float)lval.val.ivalue, rval.val.fvalue);
+	} else {
+		(expr->v).val.fvalue = calConst((expr->v).val.op, lval.val.fvalue, rval.val.fvalue);
+	}
+	free(expr->leftOperand);
+	free(expr->rightOperand);
+	expr->leftOperand = expr->rightOperand = NULL;
+}
+
 DataType lookup_table( SymbolTable *table, char* s )
 {
 	int i;
@@ -671,18 +708,22 @@ void checkexpression( Expression * expr, SymbolTable * table )
             default:
                 break;
         }
-    }
-    else{
+    } else {
         Expression *left = expr->leftOperand;
         Expression *right = expr->rightOperand;
 
         checkexpression(left, table);
         checkexpression(right, table);
 
-        DataType type = generalize(left, right);
-        convertType(left, type);//left->type = type;//converto
-        convertType(right, type);//right->type = type;//converto
-        expr->type = type;
+		if (expr->leftOperand->v.type != Identifier &&\
+			expr->rightOperand->v.type != Identifier ) {
+			constFolding( expr );
+		} else {
+			DataType type = generalize(left, right);
+			convertType(left, type);//left->type = type;//converto
+			convertType(right, type);//right->type = type;//converto
+			expr->type = type;
+		}
     }
 }
 
