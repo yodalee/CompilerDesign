@@ -66,16 +66,18 @@ VOID	"void"
 WHILE	"while"
 
  /*token constant*/
-letter   [A-Za-z]
-digit    [0-9]
-ID	 {letter}({letter}|{digit}|"_")*
-WS	 [ \t]+
-RWInt    {digit}+
-RWFloat  {digit}+\.{digit}+
+letter  [A-Za-z]
+digit   [0-9]
+NZ		[1-9]
+ID		{letter}({letter}|{digit}|"_")*
+WS		[ \t]+
+RWInt   {NZ}{digit}*
+RWFloat1	{digit}+(e[+-]?{digit}+)
+RWFloat2	{digit}+\.{digit}+(e[+-]?{digit}+)?
+RWFloat3	({digit}+)?(\.{digit}+)(e[+-]?{digit}+)?
 String_constant \"[^"]*\" 
 comment "//(.)*\n"
 lcomment "/*"((\*+[^/*])|([^*]))*\**"*/"
-
 
  /*token operators */
  /*Arithmetic operators*/ 
@@ -128,7 +130,9 @@ error    .
 
 {WS}		{}
 {RWInt}         {}
-{RWFloat}       {}
+{RWFloat1}       {}
+{RWFloat2}       {}
+{RWFloat3}       {}
 {String_constant} {}
 {ID}            { 
 			ptr = lookup(yytext);
