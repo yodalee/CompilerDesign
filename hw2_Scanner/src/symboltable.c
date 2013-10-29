@@ -103,31 +103,31 @@ void sortPrint() {
 			symptr=symptr->front;
 		}
     }
-	//get element
+	//get element, and 
 	symtab** sortArray = (symtab**)malloc(count * sizeof(symtab*));
 	int used = 0;
+	int insert = 0;
+	int move = 0;
     for (i=0; i<TABLE_SIZE; i++)
     {
 		symptr = hash_table[i];
 		while (symptr != NULL)
 		{
-			sortArray[used++] = symptr;
+			for (insert = 0; insert < used; ++insert) {
+				if (strncmp(symptr->lexeme, sortArray[insert]->lexeme, 256) < 0) {
+					for (move = used; move > insert; --move) {
+						sortArray[move] = sortArray[move-1];
+					}
+					break;
+				}
+			}
+			sortArray[insert] = symptr;
+			used++;
 			symptr=symptr->front;
 		}
     }
-	//bubble sort
-	symtab* temp;
-	for (i = 0; i < count; ++i) {
-		for (j = i+1; j < count; ++j) {
-			if (strncmp(sortArray[i]->lexeme, sortArray[j]->lexeme, 256) > 0) {
-				temp = sortArray[i];
-				sortArray[i] = sortArray[j];
-				sortArray[j] = temp;
-			}
-		}
-	}
 	printf("------sort table-------\n");
-	for (i = 0; i < count; ++i) {
+	for (i = 0; i < used; ++i) {
 		printSym(sortArray[i]);
 	}
 }
