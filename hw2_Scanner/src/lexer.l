@@ -175,6 +175,7 @@ main(int argc, char **argv)
    else
       yyin = stdin;
    yylex();
-   printSymTab();
+   //printSymTab();
+   sortPrint();
 }
 

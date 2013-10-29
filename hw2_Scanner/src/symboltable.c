@@ -8,6 +8,7 @@
 #define TABLE_SIZE	256
 
 symtab * hash_table[TABLE_SIZE];
+//define a structure symtab 
 extern int linenumber;
 
 int HASH(char * str){
@@ -67,23 +68,66 @@ void insertID(char *name){
 
 void printSym(symtab* ptr) 
 {
-	    printf(" Name = %s \n", ptr->lexeme);
-	    printf(" References = %d \n", ptr->counter);
+	printf(" Name = %s \n", ptr->lexeme);
+	printf(" References = %d \n", ptr->counter);
 }
 
 void printSymTab()
 {
     int i;
+	symtab* symptr;
     printf("----- Symbol Table ---------\n");
     for (i=0; i<TABLE_SIZE; i++)
     {
-        symtab* symptr;
-	symptr = hash_table[i];
-	while (symptr != NULL)
-	{
-            printf("====>  index = %d \n", i);
-	    printSym(symptr);
-	    symptr=symptr->front;
-	}
+		symptr = hash_table[i];
+		while (symptr != NULL)
+		{
+			//printf("====>  index = %d \n", i);
+			printSym(symptr);
+			symptr=symptr->front;
+		}
     }
+}
+
+void sortPrint() {
+	//first count the num of symbol in table
+	int count = 0;
+	int i,j = 0;
+	symtab* symptr;
+    for (i=0; i<TABLE_SIZE; i++)
+    {
+		symptr = hash_table[i];
+		while (symptr != NULL)
+		{
+			count++;
+			symptr=symptr->front;
+		}
+    }
+	//get element
+	symtab** sortArray = (symtab**)malloc(count * sizeof(symtab*));
+	int used = 0;
+    for (i=0; i<TABLE_SIZE; i++)
+    {
+		symptr = hash_table[i];
+		while (symptr != NULL)
+		{
+			sortArray[used++] = symptr;
+			symptr=symptr->front;
+		}
+    }
+	//bubble sort
+	symtab* temp;
+	for (i = 0; i < count; ++i) {
+		for (j = i+1; j < count; ++j) {
+			if (strncmp(sortArray[i]->lexeme, sortArray[j]->lexeme, 256) > 0) {
+				temp = sortArray[i];
+				sortArray[i] = sortArray[j];
+				sortArray[j] = temp;
+			}
+		}
+	}
+	printf("------sort table-------\n");
+	for (i = 0; i < count; ++i) {
+		printSym(sortArray[i]);
+	}
 }
