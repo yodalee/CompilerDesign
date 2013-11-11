@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include "header.h"
 int linenumber = 1;
+int yydebug = 1;
 AST_NODE *prog;
 
 extern int g_anyErrorOccur;
@@ -151,7 +152,7 @@ static inline AST_NODE* makeExprNode(EXPR_KIND exprKind, int operationEnumValue)
 %token RETURN
 
 %type <node> program global_decl_list global_decl function_decl block stmt_list decl_list decl var_decl type init_id_list init_id  stmt relop_expr relop_term relop_factor expr term factor var_ref
-%type <node> param_list param dim_fn expr_null id_list dim_decl cexpr mcexpr cfactor assign_expr_list test assign_expr rel_op relop_expr_list nonempty_relop_expr_list
+%type <node> param_list param dim_fn expr_null id_list dim_decl cexpr mcexpr cfactor assign_expr_list assign_expr rel_op relop_expr_list nonempty_relop_expr_list
 %type <node> add_op mul_op dim_list type_decl nonempty_assign_expr_list
 
 
@@ -195,7 +196,10 @@ function_decl	: type ID MK_LPAREN param_list MK_RPAREN MK_LBRACE block MK_RBRACE
                     }
                 | VOID ID MK_LPAREN param_list MK_RPAREN MK_LBRACE block MK_RBRACE      
                     {
-                        /*TODO*/
+                        $$ = makeDeclNode(FUNCTION_DECL);
+                        AST_NODE* parameterList = Allocate(PARAM_LIST_NODE);
+                        makeChild(parameterList, $4);
+                        makeFamily($$, 4, makeIDNode("void", NORMAL_ID), makeIDNode($2, NORMAL_ID), parameterList, $7);
                     }
                 | type ID MK_LPAREN  MK_RPAREN MK_LBRACE block MK_RBRACE 
                     {
@@ -205,7 +209,9 @@ function_decl	: type ID MK_LPAREN param_list MK_RPAREN MK_LBRACE block MK_RBRACE
                     }
                 | VOID ID MK_LPAREN  MK_RPAREN MK_LBRACE block MK_RBRACE 
                     {
-                        /*TODO*/
+                        $$ = makeDeclNode(FUNCTION_DECL);
+                        AST_NODE* emptyParameterList = Allocate(PARAM_LIST_NODE);
+                        makeFamily($$, 4, makeIDNode("void", NORMAL_ID), makeIDNode($2, NORMAL_ID), emptyParameterList, $6);
                     } 
                 ;
 
@@ -215,7 +221,7 @@ param_list	: param_list MK_COMMA  param
                 }
             | param	
                 {
-                    /*TODO*/
+					$$ = $1;
                 }
             ;
 
@@ -226,7 +232,8 @@ param		: type ID
                 }
             | type ID dim_fn 
                 {
-                    /*TODO*/
+					$$= makeDeclNode(FUNCTION_PARAMETER_DECL);
+                    makeFamily($$, 2, $1, $2);
                 }
             ;
 dim_fn		: MK_LB expr_null MK_RB 

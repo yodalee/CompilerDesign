@@ -3,7 +3,7 @@ OBJECT = parser.tab.c parser.tab.o lex.yy.c alloc.o functions.o
 CC = gcc -g
 LEX = flex
 YACC = bison -v
-YACCFLAG = -d
+YACCFLAG = -d --debug
 LIBS = -lfl 
 BIN = ../bin
 
