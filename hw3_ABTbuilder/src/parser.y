@@ -7,7 +7,6 @@
 #include <stdarg.h>
 #include "header.h"
 int linenumber = 1;
-int yydebug = 1;
 AST_NODE *prog;
 
 extern int g_anyErrorOccur;
