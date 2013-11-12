@@ -231,8 +231,9 @@ param		: type ID
                 }
             | type ID dim_fn 
                 {
-					$$= makeDeclNode(FUNCTION_PARAMETER_DECL);
-                    makeFamily($$, 2, $1, $2);
+					$$ = makeDeclNode(FUNCTION_PARAMETER_DECL);
+					AST_NODE* arraylist = makeIDNode($2, ARRAY_ID);
+					makeFamily($$, 2, $1, makeChild(makeIDNode($2, ARRAY_ID), $3));
                 }
             ;
 dim_fn		: MK_LB expr_null MK_RB 
@@ -413,53 +414,71 @@ init_id		: ID
                 }
             | ID dim_decl 
                 {
-					$$ = makeSibling(makeIDNode($1, NORMAL_ID), $2);
+					$$ = makeChild(makeIDNode($1, ARRAY_ID), $2);
                 }
             | ID OP_ASSIGN relop_expr 
                 {
-					$$ = makeSibling(makeIDNode($1, NORMAL_ID), $3);
+					$$ = makeChild(makeIDNode($1, NORMAL_ID), $3);
                 }
             ;
 
 stmt_list	: stmt_list stmt 
                 {
-                    /*TODO*/
 					$$ = makeSibling($1, $2);
                 }
             | stmt
                 {
-                    /*TODO*/
 					$$ = $1;
                 }
             ;
 
 stmt		: MK_LBRACE block MK_RBRACE 
                 {
-                    /*TODO*/
+					$$ = $2;
                 }
-            /*TODO: | While Statement */
+			| WHILE MK_LPAREN relop_expr MK_RPAREN stmt
+				{
+					$$ = makeStmtNode(WHILE_STMT);
+					makeFamily($$, 2, $3, $5);
+				}
             | FOR MK_LPAREN assign_expr_list MK_SEMICOLON relop_expr_list MK_SEMICOLON assign_expr_list MK_RPAREN stmt
                 {
-                    /*TODO*/
+					$$ = makeStmtNode(FOR_STMT);
+					makeFamily($$, 4, $3, $5, $7, $9);
                 }
             | var_ref OP_ASSIGN relop_expr MK_SEMICOLON
                 {
-                    /*TODO*/
+					$$ = makeStmtNode(ASSIGN_STMT);
+					makeFamily($$, 2, $1, $3);
                 }
-            /*TODO: | If Statement */
-            /*TODO: | If then else */
-            /*TODO: | function call */
+			| IF MK_LPAREN relop_expr MK_RPAREN stmt
+				{
+					$$ = makeStmtNode(IF_STMT);
+					makeFamily($$, 3, $3, $5, Allocate(NUL_NODE));
+				}
+			| IF MK_LPAREN relop_expr MK_RPAREN stmt ELSE stmt
+				{
+					$$ = makeStmtNode(IF_STMT);
+					makeFamily($$, 3, $3, $5, $7);
+				}
+			| ID MK_LPAREN relop_expr_list MK_RPAREN MK_SEMICOLON
+				{
+					$$ = makeStmtNode(FUNCTION_CALL_STMT);
+					makeFamily($$, 2, makeIDNode($1, NORMAL_ID), $3);
+				}
             | MK_SEMICOLON 
                 {
-                    /*TODO*/
+					$$ = Allocate(NUL_NODE);
                 }
             | RETURN MK_SEMICOLON  
                 {
-                    /*TODO*/
+					$$ = makeStmtNode(RETURN_STMT);
+					makeChild($$, Allocate(NUL_NODE));
                 }
             | RETURN relop_expr MK_SEMICOLON
                 {
-                    /*TODO*/
+					$$ = makeStmtNode(RETURN_STMT);
+					makeChild($$, $2);
                 }
             ;
 
