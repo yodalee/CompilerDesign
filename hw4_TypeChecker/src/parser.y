@@ -762,11 +762,13 @@ char *argv[];
      yyparse();
      // printGV(prog, NULL);
      
-     initializeSymbolTable();
+     //initializeSymbolTable();
+     initializeStack();
      
      semanticAnalysis(prog);
      
-     symbolTableEnd();
+     stackEnd();
+     //symbolTableEnd();
      if (!g_anyErrorOccur) {
         printf("Parsing completed. No errors found.\n");
      }

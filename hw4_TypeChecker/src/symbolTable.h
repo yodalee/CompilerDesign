@@ -16,89 +16,95 @@
 
 typedef enum SymbolAttributeKind
 {
-    VARIABLE_ATTRIBUTE,
-    TYPE_ATTRIBUTE,
-    FUNCTION_SIGNATURE
+  VARIABLE_ATTRIBUTE,
+  TYPE_ATTRIBUTE,
+  FUNCTION_SIGNATURE
 } SymbolAttributeKind;
 
 typedef enum TypeDescriptorKind
 {
-    SCALAR_TYPE_DESCRIPTOR,
-    ARRAY_TYPE_DESCRIPTOR,
+  SCALAR_TYPE_DESCRIPTOR,
+  ARRAY_TYPE_DESCRIPTOR,
 } TypeDescriptorKind;
 
 typedef struct ArrayProperties
 {
-    int dimension;
-    int sizeInEachDimension[MAX_ARRAY_DIMENSION];
-    //point to a TypeDescriptor in the symbol table;
-    DATA_TYPE elementType;
+  int dimension;
+  int sizeInEachDimension[MAX_ARRAY_DIMENSION];
+  //point to a TypeDescriptor in the symbol table;
+  DATA_TYPE elementType;
 } ArrayProperties;
 
 typedef struct TypeDescriptor
 {
-    TypeDescriptorKind kind;
-    union
-    {
-        DATA_TYPE dataType;//kind: SCALAR_TYPE_DESCRIPTOR
-        ArrayProperties arrayProperties;//kind: ARRAY_TYPE_DESCRIPTOR
-    } properties;
+  TypeDescriptorKind kind;
+  union
+  {
+    DATA_TYPE dataType;//kind: SCALAR_TYPE_DESCRIPTOR
+    ArrayProperties arrayProperties;//kind: ARRAY_TYPE_DESCRIPTOR
+  } properties;
 } TypeDescriptor;
 
 typedef struct Parameter
 {
-    //point to a TypeDescriptor in the symbol table;
-    struct Parameter* next;
-    TypeDescriptor* type;
-    char* parameterName;
+  //point to a TypeDescriptor in the symbol table;
+  struct Parameter* next;
+  TypeDescriptor* type;
+  char* parameterName;
 } Parameter;
 
 typedef struct FunctionSignature
 {
-    int parametersCount;
-    Parameter* parameterList;
-    DATA_TYPE returnType;
+  int parametersCount;
+  Parameter* parameterList;
+  DATA_TYPE returnType;
 } FunctionSignature;
 
 typedef struct SymbolAttribute
 {
-    SymbolAttributeKind attributeKind;
+  SymbolAttributeKind attributeKind;
 
-    union
-    {
-        TypeDescriptor* typeDescriptor;
-        FunctionSignature* functionSignature;
-    } attr;
+  union
+  {
+    TypeDescriptor* typeDescriptor;
+    FunctionSignature* functionSignature;
+  } attr;
 } SymbolAttribute;
 
 typedef struct SymbolTableEntry
 {
-    struct SymbolTableEntry* nextInHashChain;
-    struct SymbolTableEntry* prevInHashChain;
-    struct SymbolTableEntry* nextInSameLevel;
-    struct SymbolTableEntry* sameNameInOuterLevel;
-
-    char* name;
-    SymbolAttribute* attribute;
-    int nestingLevel;
+  struct SymbolTableEntry* nextInHashChain;
+  struct SymbolTableEntry* prevInHashChain;
+  char* name;
+  SymbolAttribute* attribute;
 
 } SymbolTableEntry;
 
 typedef struct SymbolTable
 {
-    SymbolTableEntry* hashTable[HASH_TABLE_SIZE];
-    SymbolTableEntry** scopeDisplay;
-    int currentLevel;
-    int scopeDisplayElementCount;
+  SymbolTableEntry* hashTable[HASH_TABLE_SIZE];
+  SymbolTableEntry** scopeDisplay;
+  struct SymbolTable *nextTable;
 } SymbolTable;
 
+typedef struct SymbolTableStack
+{
+  SymbolTable *table;
+  int numberOfStack;
+} SymbolTableStack;
 
-void initializeSymbolTable();
-void symbolTableEnd();
-SymbolTableEntry* retrieveSymbol(char* symbolName);
+//table function
+SymbolTable* initializeSymbolTable();
+void symbolTableEnd(SymbolTable * symbolTable);
 SymbolTableEntry* enterSymbol(char* symbolName, SymbolAttribute* attribute);
 void removeSymbol(char* symbolName);
+SymbolTableEntry* retrieveSymbol(char* symbolName);
+
 int declaredLocally(char* symbolName);
+
+//stack function
+void initializeStack();
+void stackEnd();
 void openScope();
 void closeScope();
 
