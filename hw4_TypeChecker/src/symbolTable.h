@@ -77,7 +77,6 @@ typedef struct SymbolTableEntry
   struct SymbolTableEntry* prevInHashChain;
   char* name;
   SymbolAttribute* attribute;
-
 } SymbolTableEntry;
 
 typedef struct SymbolTable
@@ -99,6 +98,7 @@ void symbolTableEnd(SymbolTable * symbolTable);
 SymbolTableEntry* enterSymbol(char* symbolName, SymbolAttribute* attribute);
 void removeSymbol(char* symbolName);
 SymbolTableEntry* retrieveSymbol(char* symbolName);
+SymbolTableEntry* detectSymbol(char* symbolName);
 
 int declaredLocally(char* symbolName);
 

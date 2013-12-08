@@ -29,26 +29,25 @@ SymbolTableEntry* newSymbolTableEntry()
 // push entry into topest hashtable by hash
 void enterIntoHashTrain(int hashIndex, SymbolTableEntry* entry)
 {
-  SymbolTable symbolTable = *symbolTableStack.table;
-  SymbolTableEntry* ptr = symbolTable.hashTable[hashIndex];
+  SymbolTable *symbolTable = symbolTableStack.table;
+  SymbolTableEntry *ptr = symbolTable->hashTable[hashIndex];
   if (ptr == NULL) {
-    symbolTable.hashTable[hashIndex] = entry;
+    symbolTable->hashTable[hashIndex] = entry;
     entry->prevInHashChain = NULL;
     entry->nextInHashChain = entry;
   } else {
     entry->prevInHashChain = ptr;
     ptr->nextInHashChain = entry;
     entry->nextInHashChain = entry;
-    symbolTable.hashTable[hashIndex] = entry;
+    symbolTable->hashTable[hashIndex] = entry;
   }
 }
 
-void removeFromHashTrain(int hashIndex, SymbolTableEntry *entry)
+void removeFromHashTrain(int hashIndex, SymbolTableEntry *entry, SymbolTable *symbolTable)
 {
-  SymbolTable symbolTable = *symbolTableStack.table;
   //directly pass the entry pointer in hashTable
-  if (symbolTable.hashTable[hashIndex] == entry) {
-    symbolTable.hashTable[hashIndex] = entry->prevInHashChain;
+  if (symbolTable->hashTable[hashIndex] == entry) {
+    symbolTable->hashTable[hashIndex] = entry->prevInHashChain;
     if (entry->prevInHashChain) {
       entry->prevInHashChain->nextInHashChain = entry->prevInHashChain;
     }
@@ -62,47 +61,59 @@ void removeFromHashTrain(int hashIndex, SymbolTableEntry *entry)
 }
 
 //search symbol table stack from first until end
-SymbolTableEntry* retrieveSymbol(char* symbolName)
+SymbolTableEntry*
+searchTable(SymbolTable* tablePtr, char* symbolName)
 {
   int hashIndex = HASH(symbolName);
   int found = 0;
-  SymbolTable *tablePtr = symbolTableStack.table;
+  SymbolTableEntry *ptr = tablePtr->hashTable[hashIndex];
   SymbolTableEntry *rtnEntry = NULL;
-  while (tablePtr) {
-    SymbolTableEntry* ptr = tablePtr->hashTable[hashIndex];
-    while (ptr) {
-      if ((strcmp(symbolName, ptr->name) == 0)){
-        rtnEntry = ptr;
-        found = 1;
-        break;
-      }
-      ptr = ptr->prevInHashChain;
-    }
-    if (found) {
+  while (ptr) {
+    if ((strcmp(symbolName, ptr->name) == 0)){
+      rtnEntry = ptr;
+      found = 1;
       break;
-    } else {
-      tablePtr = tablePtr->nextTable;
     }
+    ptr = ptr->prevInHashChain;
   }
   return rtnEntry;
 }
 
+//search symbol table stack from first until end
+SymbolTableEntry*
+retrieveSymbol(char* symbolName)
+{
+  SymbolTable *tablePtr = symbolTableStack.table;
+  SymbolTableEntry *rtnEntry = NULL;
+  while (tablePtr) {
+    rtnEntry = searchTable(tablePtr, symbolName);
+    if (rtnEntry) {
+      break;
+    }
+    tablePtr = tablePtr->nextTable;
+  }
+  return rtnEntry;
+}
+
+SymbolTableEntry*
+detectSymbol(char* symbolName)
+{
+  return searchTable(symbolTableStack.table, symbolName);
+}
 
 void
 initializeStack()
 {
   symbolTableStack.table = NULL;
-  symbolTableStack.numberOfStack = -1;
+  symbolTableStack.numberOfStack = 0;
   openScope();
 }
 
 void 
 stackEnd() 
 {
-  SymbolTable *ptr = symbolTableStack.table;
-  while (ptr) {
-    symbolTableEnd(ptr);
-    ptr = ptr->nextTable;
+  while (symbolTableStack.numberOfStack > 0) {
+    closeScope();
   }
 }
 
@@ -118,10 +129,12 @@ void openScope()
 //pop out the stack, remove first table in stack
 void closeScope()
 {
-  SymbolTable *deleteTable = symbolTableStack.table;
-  symbolTableStack.table = deleteTable->nextTable;
-  symbolTableEnd(deleteTable);
-  --symbolTableStack.numberOfStack;
+  if(symbolTableStack.numberOfStack > 0) {
+    SymbolTable *deleteTable = symbolTableStack.table;
+    symbolTableStack.table = deleteTable->nextTable;
+    symbolTableEnd(deleteTable);
+    --symbolTableStack.numberOfStack;
+  }
 }
 
 SymbolTable* initializeSymbolTable()
@@ -144,19 +157,22 @@ void symbolTableEnd(SymbolTable *symbolTable)
   for (i = 0; i < HASH_TABLE_SIZE; ++i) {
     ptr = symbolTable->hashTable[i];
     while (ptr) {
-      nextptr = ptr->nextInHashChain;
-      removeFromHashTrain(i, ptr);
+      nextptr = ptr->prevInHashChain;
+      removeFromHashTrain(i, ptr, symbolTable);
       ptr = nextptr;
     }
   }
+  free(symbolTable);
 }
 
 SymbolTableEntry* enterSymbol(char* symbolName, SymbolAttribute* attribute)
 {
-  SymbolTable *symbolTable = symbolTableStack.table;
   int hashIndex = HASH(symbolName);
   SymbolTableEntry* entry = newSymbolTableEntry();
+  entry->attribute = (SymbolAttribute*)malloc(sizeof(SymbolAttribute));
+  entry->name = (char*)malloc(strlen(symbolName+1));
   memcpy(entry->attribute, attribute, sizeof(SymbolAttribute));
+  memcpy(entry->name, symbolName, strlen(symbolName));
   enterIntoHashTrain(hashIndex, entry);
 }
 
@@ -165,9 +181,8 @@ void removeSymbol(char* symbolName)
 {
   int hashIndex = HASH(symbolName);
   SymbolTableEntry* entry;
-  SymbolTableEntry* retrieveSymbol(char* symbolName);
   if ((entry = retrieveSymbol(symbolName)) != NULL) {
-    removeFromHashTrain(hashIndex, entry);
+    removeFromHashTrain(hashIndex, entry, symbolTableStack.table);
   }
 }
 
