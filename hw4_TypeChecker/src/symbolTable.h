@@ -94,11 +94,12 @@ typedef struct SymbolTableStack
 
 //table function
 SymbolTable* initializeSymbolTable();
-void symbolTableEnd(SymbolTable * symbolTable);
-SymbolTableEntry* enterSymbol(char* symbolName, SymbolAttribute* attribute);
-void removeSymbol(char* symbolName);
-SymbolTableEntry* retrieveSymbol(char* symbolName);
-SymbolTableEntry* detectSymbol(char* symbolName);
+void symbolTableEnd(SymbolTable *symbolTable);
+SymbolTableEntry *enterSymbol(char *symbolName, SymbolAttribute* attribute);
+void removeSymbol(char *symbolName);
+SymbolTableEntry* retrieveSymbol(char *symbolName);
+SymbolTableEntry* detectSymbol(char *symbolName);
+DATA_TYPE retrieveType(char *typeName);
 
 int declaredLocally(char* symbolName);
 

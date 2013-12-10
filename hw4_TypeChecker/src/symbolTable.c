@@ -57,6 +57,18 @@ void removeFromHashTrain(int hashIndex, SymbolTableEntry *entry, SymbolTable *sy
       entry->prevInHashChain->nextInHashChain = entry->nextInHashChain;
     }
   }
+  //free inside out
+  free(entry->name);
+  if (entry->attribute->attributeKind == FUNCTION_SIGNATURE) {
+    Parameter *param = entry->attribute->attr.functionSignature->parameterList;
+    while (param) {
+      free(param->parameterName);
+      free(param->type);
+      param = param->next;
+    }
+  } else {
+    free(entry->attribute->attr.typeDescriptor);
+  }
   free(entry);
 }
 
@@ -95,15 +107,36 @@ retrieveSymbol(char* symbolName)
   return rtnEntry;
 }
 
+//used in detect local symbol when declare local var
 SymbolTableEntry*
-detectSymbol(char* symbolName)
+detectSymbol(char *symbolName)
 {
   return searchTable(symbolTableStack.table, symbolName);
+}
+
+DATA_TYPE
+retrieveType(char *typeName)
+{
+  SymbolTableEntry *entry = retrieveSymbol(typeName);
+  if (entry) {
+    return entry->attribute->attr.typeDescriptor->properties.dataType;
+  } else { 
+    if (strcmp(typeName, SYMBOL_TABLE_INT_NAME) == 0) {
+        return INT_TYPE;
+    } else if (strcmp(typeName, SYMBOL_TABLE_FLOAT_NAME) == 0) {
+      return FLOAT_TYPE;
+    } else if (strcmp(typeName, SYMBOL_TABLE_VOID_NAME) == 0) {
+      return VOID_TYPE;
+    } else {
+      return ERROR_TYPE;
+    }
+  }
 }
 
 void
 initializeStack()
 {
+
   symbolTableStack.table = NULL;
   symbolTableStack.numberOfStack = 0;
   openScope();
@@ -184,9 +217,4 @@ void removeSymbol(char* symbolName)
   if ((entry = retrieveSymbol(symbolName)) != NULL) {
     removeFromHashTrain(hashIndex, entry, symbolTableStack.table);
   }
-}
-
-//currently don't understand the meaning
-int declaredLocally(char* symbolName)
-{
 }
