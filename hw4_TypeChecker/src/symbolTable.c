@@ -136,7 +136,6 @@ retrieveType(char *typeName)
 void
 initializeStack()
 {
-
   symbolTableStack.table = NULL;
   symbolTableStack.numberOfStack = 0;
   openScope();
@@ -202,10 +201,9 @@ SymbolTableEntry* enterSymbol(char* symbolName, SymbolAttribute* attribute)
 {
   int hashIndex = HASH(symbolName);
   SymbolTableEntry* entry = newSymbolTableEntry();
-  entry->attribute = (SymbolAttribute*)malloc(sizeof(SymbolAttribute));
+  entry->attribute = attribute;
   entry->name = (char*)malloc(strlen(symbolName+1));
-  memcpy(entry->attribute, attribute, sizeof(SymbolAttribute));
-  memcpy(entry->name, symbolName, strlen(symbolName));
+  strcpy(entry->name, symbolName);
   enterIntoHashTrain(hashIndex, entry);
 }
 
