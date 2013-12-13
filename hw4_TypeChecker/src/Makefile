@@ -1,3 +1,4 @@
+BIN = ../bin
 TARGET = parser
 OBJECT = parser.tab.c parser.tab.o lex.yy.c alloc.o functions.o semanticAnalysis.o symbolTable.o
 OUTPUT = parser.output parser.tab.h
@@ -6,9 +7,13 @@ LEX = flex
 YACC = bison -v
 YACCFLAG = -d
 LIBS = -lfl 
+PARAM = $(BIN)/test.c
 
-parser: parser.tab.o alloc.o functions.o symbolTable.o semanticAnalysis.o 
-	$(CC) -o $(TARGET) parser.tab.o alloc.o functions.o symbolTable.o semanticAnalysis.o $(LIBS)
+parser: mkdir parser.tab.o alloc.o functions.o symbolTable.o semanticAnalysis.o 
+	$(CC) -o $(BIN)/$(TARGET) parser.tab.o alloc.o functions.o symbolTable.o semanticAnalysis.o $(LIBS)
+
+mkdir: 
+	mkdir -p ../bin
 
 parser.tab.o: parser.tab.c lex.yy.c alloc.o functions.c symbolTable.o semanticAnalysis.o
 	$(CC) -c parser.tab.c
@@ -31,6 +36,12 @@ alloc.o: alloc.c
 functions.o: functions.c
 	$(CC) -c functions.c
 
+run:
+	$(BIN)/$(TARGET) $(PARAM)
+	$(shell dot -Tpng AST_Graph.gv -o ../bin/test.png)
+
+#	$(shell eom ../bin/test.png)
+
 clean:
-	rm -f $(TARGET) $(OBJECT) $(OUTPUT)
+	rm -f $(BIN)/$(TARGET) $(OBJECT) $(OUTPUT)
 

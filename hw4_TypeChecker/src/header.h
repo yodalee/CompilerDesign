@@ -2,6 +2,8 @@
 #define __HEADER_H__
 
 #define MAX_ARRAY_DIMENSION 10
+#define True 1
+#define False 0
 
 typedef enum DATA_TYPE
 {
@@ -143,8 +145,8 @@ typedef struct CON_Type{
 	union {
 		int     intval;
 		double  fval;
-		char    *sc; }
-		const_u;
+		char    *sc;
+    } const_u;
 } CON_Type;
 
 
