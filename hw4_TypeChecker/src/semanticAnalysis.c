@@ -439,14 +439,48 @@ void declareFunction(AST_NODE* declarationNode)
 
 void checkAssignOrExpr(AST_NODE* assignOrExprRelatedNode)
 {
+  AST_NODE *assignExpr = assignOrExprRelatedNode->child;
+  while (assignExpr) {
+    assignExpr = assignExpr->rightSibling;
+  }
 }
 
 void checkWhileStmt(AST_NODE* whileNode)
 {
+  AST_NODE *condNode = whileNode->child;
+  AST_NODE *blockNode = condNode->rightSibling;
+  processExprRelatedNode(condNode);
+  openScope();
+  processBlockNode(blockNode);
+  closeScope();
 }
 
 void checkForStmt(AST_NODE* forNode)
 {
+  AST_NODE *initNode = forNode->child;
+  AST_NODE *condNode = initNode->rightSibling;
+  AST_NODE *incrNode = condNode->rightSibling;
+  AST_NODE *stmtNode = incrNode->rightSibling;
+  initNode = initNode->child;
+  while (initNode) {
+    checkAssignmentStmt(initNode);
+    initNode = initNode->rightSibling;
+  }
+  if (condNode->nodeType != NUL_NODE) {
+    condNode = condNode->child;
+    while (condNode) {
+      processExprRelatedNode(condNode);
+      condNode = condNode->rightSibling;
+    }
+  }
+  incrNode = incrNode->child;
+  while (incrNode) {
+    checkAssignmentStmt(incrNode);
+    incrNode = incrNode->rightSibling;
+  }
+  openScope();
+  processBlockNode(stmtNode);
+  closeScope();
 }
 
 void checkAssignmentStmt(AST_NODE* assignmentNode)
@@ -986,11 +1020,6 @@ void processStmtNode(AST_NODE* stmtNode)
       assert(0);
     }
   }
-}
-
-
-void processGeneralNode(AST_NODE *node)
-{
 }
 
 void processDeclDimList(AST_NODE* idNode, TypeDescriptor* typeDescriptor, int ignoreFirstDimSize)
