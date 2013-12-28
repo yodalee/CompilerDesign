@@ -1,6 +1,26 @@
 #include <stdio.h>
 #include "genfunction.h"
 
+int reg_number = 8;
+int ARoffset;
+FILE *fd;
+
+void 
+openfile(char *outputname) 
+{
+  fd = fopen(outputname, "w");
+  if (fd == NULL) {
+    fprintf(stderr, "open output file fail\n");
+    return;
+  }
+}
+
+void 
+closefile() 
+{
+  fclose(fd);
+}
+
 void 
 gen_prologue(char *name) 
 {
@@ -10,15 +30,20 @@ gen_prologue(char *name)
   fprintf(fd ,"\tadd $sp, $sp, -8\n");
   fprintf(fd ,"\tlw $2, _framesize_%s;\n", name);
   fprintf(fd ,"\tsub $sp, $sp, $2\n");
-  //something here
   fprintf(fd ,"_begin_%s:\n", name);
+}
+
+void
+gen_globalvar(char *name)
+{
+  fprintf(fd, ".data\n");
+  fprintf(fd, "_%s: .word 0\n", name);
 }
 
 void 
 gen_epilogue(char *name, int framesize) 
 {
   fprintf(fd ,"_end_%s\n", name);
-  //something here
   fprintf(fd ,"\tlw $ra, 4($fp)\n");
   fprintf(fd ,"\tadd $sp, $fp, 4\n");
   fprintf(fd ,"\tlw $fp, 0($fp)\n");

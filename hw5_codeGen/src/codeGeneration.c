@@ -39,6 +39,7 @@ void gen_getExprOrConstValue(AST_NODE* exprOrConstNode, int* iValue, float* fVal
 void gen_evaluateExprValue(AST_NODE* exprNode);
 
 SymbolTableStack symbolTableStack;
+extern ARoffset;
 
 //void 
 //printParameter(Parameter* param) 
@@ -60,9 +61,9 @@ SymbolTableStack symbolTableStack;
 void codeGeneration(AST_NODE *root, char *cfile)
 {
   char *outputname = strcat(strtok(basename(cfile), "."), ".asm");
-  fd = fopen(outputname, "w");
+  openfile(outputname);
   gen_processProgramNode(root);
-  fclose(fd);
+  closefile();
 }
 
 void gen_processProgramNode(AST_NODE *programNode)
@@ -73,13 +74,13 @@ void gen_processProgramNode(AST_NODE *programNode)
       case VARIABLE_DECL_LIST_NODE: {
         AST_NODE* varDeclNode = child->child;
         while (varDeclNode) {
-          //processDeclarationNode(varDeclNode);
+          gen_processDeclarationNode(varDeclNode);
           varDeclNode = varDeclNode->rightSibling;
         }
         break;
       }
       case DECLARATION_NODE: {
-        //processDeclarationNode(child);
+        gen_processDeclarationNode(child);
         break;
       }
       default: {
@@ -90,161 +91,146 @@ void gen_processProgramNode(AST_NODE *programNode)
   }
 }
 
-//void processDeclarationNode(AST_NODE* declarationNode)
-//{
-//  //different declaration insert symbol table
-//  AST_NODE* child = declarationNode->child;
-//  DECL_KIND kind = declarationNode->semantic_value.declSemanticValue.kind;
-//  switch(kind){
-//    case TYPE_DECL:
-//      processTypeNode(child);
-//      break;
-//    case VARIABLE_DECL: 
-//    {
-//      declareIdList(child, VARIABLE_ATTRIBUTE, False);
-//      break;
-//    }
-//    case FUNCTION_DECL: 
-//    {
-//      declareFunction(child);
-//      break;
-//    }
-//    default: 
-//    {
-//      assert(0);
-//    }
-//  }
-//}
-//
-//void processTypeNode(AST_NODE* idNodeAsType)
-//{
-//  AST_NODE* idNode = idNodeAsType->rightSibling;
-//  SymbolAttribute* typeAttr = (SymbolAttribute*)malloc(sizeof(SymbolAttribute));
-//  typeAttr->attributeKind = TYPE_ATTRIBUTE;
-//  typeAttr->attr.typeDescriptor = (TypeDescriptor*)malloc(sizeof(TypeDescriptor));
-//  typeAttr->attr.typeDescriptor->properties.dataType 
-//    = retrieveType(idNodeAsType->semantic_value.identifierSemanticValue.identifierName);
-//  while (idNode) {
-//    if (detectSymbol(idNode->semantic_value.identifierSemanticValue.identifierName)) {
-//      //typename redefine
-//      printErrorMsg(idNode, SYMBOL_REDECLARE);
-//    } else {
-//      //push into symbol table
-//      enterSymbol(idNode->semantic_value.identifierSemanticValue.identifierName, typeAttr);
-//    }
-//    //rightSibling until NULL
-//    idNode = idNode->rightSibling;
-//  }
-//}
-//
-//void declareIdList(AST_NODE* declarationNode, SymbolAttributeKind isVariableOrTypeAttribute, int ignoreArrayFirstDimSize)
-//{
-//  AST_NODE *idNode = declarationNode->rightSibling;
-//  while (idNode) {
-//    if (detectSymbol(idNode->semantic_value.identifierSemanticValue.identifierName)) {
-//      //symbol name redefine
-//      printErrorMsg(idNode, SYMBOL_REDECLARE);
-//    } else {
-//      SymbolAttribute* varAttr = (SymbolAttribute*)malloc(sizeof(SymbolAttribute));
-//      TypeDescriptor* typeDesc = (TypeDescriptor*)malloc(sizeof(TypeDescriptor));
-//      varAttr->attributeKind = VARIABLE_ATTRIBUTE;
-//      varAttr->attr.typeDescriptor = typeDesc;
-//      typeDesc->properties.dataType 
-//        = retrieveType(declarationNode->semantic_value.identifierSemanticValue.identifierName);
-//
-//      if (typeDesc->properties.dataType == VOID_TYPE) {
-//        printErrorMsg(idNode, VOID_VARIABLE);
-//      } else {
-//        //printf("get variable %s\n", idNode->semantic_value.identifierSemanticValue.identifierName);
-//        //printf("type %d\n", retrieveType(declarationNode->semantic_value.identifierSemanticValue.identifierName));
-//
-//        processDeclDimList(idNode, typeDesc, False);
-//
-//        enterSymbol(idNode->semantic_value.identifierSemanticValue.identifierName, varAttr);
-//      }
-//    }
-//
-//    idNode = idNode->rightSibling;
-//  }
-//}
-//
-//void declareFunction(AST_NODE* declarationNode)
-//{
-//  //get node
-//  AST_NODE* idNode = declarationNode->rightSibling;
-//  AST_NODE* paramListNode = idNode->rightSibling;
-//  AST_NODE* blockNode = paramListNode->rightSibling;
-//
-//  SymbolAttribute *funcAttr = (SymbolAttribute*)malloc(sizeof(SymbolAttribute));
-//  FunctionSignature* funcSig = (FunctionSignature*)malloc(sizeof(FunctionSignature));
-//  Parameter *param = NULL;
-//  //generate attribute
-//  funcAttr->attributeKind = FUNCTION_SIGNATURE;
-//  funcAttr->attr.functionSignature = funcSig;
-//
-//  //generate signature
-//  funcSig->parametersCount = 0;
-//  funcSig->parameterList = NULL;
-//  funcSig->returnType = retrieveType(declarationNode->semantic_value.identifierSemanticValue.identifierName);
-//
-//  //printf("get function %s\n", idNode->semantic_value.identifierSemanticValue.identifierName);
-//  //printf("return type %d\n", retrieveType(declarationNode->semantic_value.identifierSemanticValue.identifierName));
-//
-//  //parse parameter node
-//  AST_NODE *paramNode = paramListNode->child;
-//  while(paramNode) {
-//    //push into Parameter node
-//    AST_NODE *varTypeNode = paramNode->child;
-//    AST_NODE *varidNode = varTypeNode->rightSibling;
-//    Parameter *nextParam = param;
-//    param = (Parameter*)malloc(sizeof(Parameter));
-//    param->type = (TypeDescriptor*)malloc(sizeof(TypeDescriptor));
-//    param->parameterName = (char*)malloc(strlen(varidNode->semantic_value.identifierSemanticValue.identifierName+1));
-//    strcpy(param->parameterName, varidNode->semantic_value.identifierSemanticValue.identifierName);
-//    param->next = nextParam;
-//    ++(funcSig->parametersCount);
-//    param->type->properties.dataType
-//      = retrieveType(varTypeNode->semantic_value.identifierSemanticValue.identifierName);
-//
-//    processDeclDimList(varidNode, param->type, True);
-//
-//    paramNode = paramNode->rightSibling;
-//  }
-//  funcSig->parameterList = param;
-//  if (detectSymbol(idNode->semantic_value.identifierSemanticValue.identifierName)) {
-//    //function name redefine
-//    printErrorMsg(idNode, SYMBOL_REDECLARE);
-//  } else {
-//    //push into symbol table
-//    enterSymbol(idNode->semantic_value.identifierSemanticValue.identifierName, funcAttr);
-//  }
-//  openScope();
-//  //generate param symbol
-//  SymbolAttribute *paramAttr = NULL;
-//  TypeDescriptor *paramType = NULL;
-//  Parameter *paramVar = param;
-//  while(paramVar){
-//    SymbolAttribute *paramAttr = (SymbolAttribute*)malloc(sizeof(SymbolAttribute));
-//    TypeDescriptor *paramType = (TypeDescriptor*)malloc(sizeof(TypeDescriptor));
-//    paramAttr->attributeKind = VARIABLE_ATTRIBUTE;
-//    paramAttr->attr.typeDescriptor = paramType;
-//
-//    memcpy(paramType, param->type, sizeof(TypeDescriptor));
-//    if (detectSymbol(paramVar->parameterName)) {
-//      //function name redefine
-//      printErrorMsg(paramListNode, SYMBOL_REDECLARE);
-//    } else {
-//      //push into symbol table
-//      enterSymbol(paramVar->parameterName, paramAttr);
-//    }
-//
-//    paramVar = paramVar->next;
-//  }
-//  
-//  processBlockNode(blockNode);
-//  closeScope();
-//}
-//
+void gen_processDeclarationNode(AST_NODE* declarationNode)
+{
+  //different declaration insert symbol table
+  AST_NODE* child = declarationNode->child;
+  DECL_KIND kind = declarationNode->semantic_value.declSemanticValue.kind;
+  switch(kind){
+    case TYPE_DECL:
+      gen_processTypeNode(child);
+      break;
+    case VARIABLE_DECL: 
+    {
+      gen_declareIdList(child, VARIABLE_ATTRIBUTE, False);
+      break;
+    }
+    case FUNCTION_DECL: 
+    {
+      gen_declareFunction(child);
+      break;
+    }
+    default: 
+    {
+      assert(0);
+    }
+  }
+}
+
+void gen_processTypeNode(AST_NODE* idNodeAsType)
+{
+  AST_NODE* idNode = idNodeAsType->rightSibling;
+  SymbolAttribute* typeAttr = (SymbolAttribute*)malloc(sizeof(SymbolAttribute));
+  typeAttr->attributeKind = TYPE_ATTRIBUTE;
+  typeAttr->attr.typeDescriptor = (TypeDescriptor*)malloc(sizeof(TypeDescriptor));
+  typeAttr->attr.typeDescriptor->properties.dataType 
+    = retrieveType(idNodeAsType->semantic_value.identifierSemanticValue.identifierName);
+  while (idNode) {
+    //push into symbol table
+    enterSymbol(idNode->semantic_value.identifierSemanticValue.identifierName, typeAttr);
+    //rightSibling until NULL
+    idNode = idNode->rightSibling;
+  }
+}
+
+void gen_declareIdList(AST_NODE* declarationNode, SymbolAttributeKind isVariableOrTypeAttribute, int ignoreArrayFirstDimSize)
+{
+  AST_NODE *idNode = declarationNode->rightSibling;
+  while (idNode) {
+    SymbolAttribute* varAttr = (SymbolAttribute*)malloc(sizeof(SymbolAttribute));
+    TypeDescriptor* typeDesc = (TypeDescriptor*)malloc(sizeof(TypeDescriptor));
+    varAttr->attributeKind = VARIABLE_ATTRIBUTE;
+    varAttr->attr.typeDescriptor = typeDesc;
+    typeDesc->properties.dataType 
+      = retrieveType(declarationNode->semantic_value.identifierSemanticValue.identifierName);
+
+    gen_processDeclDimList(idNode, typeDesc, False);
+
+    enterSymbol(idNode->semantic_value.identifierSemanticValue.identifierName, varAttr);
+
+    //code gen
+    if (symbolTableStack.numberOfStack == 1) {
+      gen_globalvar(idNode->semantic_value.identifierSemanticValue.identifierName);
+    } else {
+      symbolTableStack.table->offset = ARoffset;
+      ARoffset -= 4;
+    }
+
+    idNode = idNode->rightSibling;
+  }
+}
+
+void gen_declareFunction(AST_NODE* declarationNode)
+{
+  //get node
+  AST_NODE* idNode = declarationNode->rightSibling;
+  AST_NODE* paramListNode = idNode->rightSibling;
+  AST_NODE* blockNode = paramListNode->rightSibling;
+
+  SymbolAttribute *funcAttr = (SymbolAttribute*)malloc(sizeof(SymbolAttribute));
+  FunctionSignature* funcSig = (FunctionSignature*)malloc(sizeof(FunctionSignature));
+  Parameter *param = NULL;
+  //generate attribute
+  funcAttr->attributeKind = FUNCTION_SIGNATURE;
+  funcAttr->attr.functionSignature = funcSig;
+
+  //generate signature
+  funcSig->parametersCount = 0;
+  funcSig->parameterList = NULL;
+  funcSig->returnType = retrieveType(declarationNode->semantic_value.identifierSemanticValue.identifierName);
+
+  //printf("get function %s\n", idNode->semantic_value.identifierSemanticValue.identifierName);
+  //printf("return type %d\n", retrieveType(declarationNode->semantic_value.identifierSemanticValue.identifierName));
+
+  //parse parameter node
+  AST_NODE *paramNode = paramListNode->child;
+  while(paramNode) {
+    //push into Parameter node
+    AST_NODE *varTypeNode = paramNode->child;
+    AST_NODE *varidNode = varTypeNode->rightSibling;
+    Parameter *nextParam = param;
+    param = (Parameter*)malloc(sizeof(Parameter));
+    param->type = (TypeDescriptor*)malloc(sizeof(TypeDescriptor));
+    param->parameterName = (char*)malloc(strlen(varidNode->semantic_value.identifierSemanticValue.identifierName+1));
+    strcpy(param->parameterName, varidNode->semantic_value.identifierSemanticValue.identifierName);
+    param->next = nextParam;
+    ++(funcSig->parametersCount);
+    param->type->properties.dataType
+      = retrieveType(varTypeNode->semantic_value.identifierSemanticValue.identifierName);
+
+    gen_processDeclDimList(varidNode, param->type, True);
+
+    paramNode = paramNode->rightSibling;
+  }
+  funcSig->parameterList = param;
+  //push into symbol table
+  enterSymbol(idNode->semantic_value.identifierSemanticValue.identifierName, funcAttr);
+  gen_head(idNode->semantic_value.identifierSemanticValue.identifierName);
+
+  openScope();
+  //generate param symbol
+  SymbolAttribute *paramAttr = NULL;
+  TypeDescriptor *paramType = NULL;
+  Parameter *paramVar = param;
+  while(paramVar){
+    SymbolAttribute *paramAttr = (SymbolAttribute*)malloc(sizeof(SymbolAttribute));
+    TypeDescriptor *paramType = (TypeDescriptor*)malloc(sizeof(TypeDescriptor));
+    paramAttr->attributeKind = VARIABLE_ATTRIBUTE;
+    paramAttr->attr.typeDescriptor = paramType;
+
+    memcpy(paramType, param->type, sizeof(TypeDescriptor));
+    //push into symbol table
+    enterSymbol(paramVar->parameterName, paramAttr);
+
+    paramVar = paramVar->next;
+  }
+  
+  gen_prologue(idNode->semantic_value.identifierSemanticValue.identifierName);
+  gen_processBlockNode(blockNode);
+  closeScope();
+  gen_epilogue(idNode->semantic_value.identifierSemanticValue.identifierName,ARoffset);
+}
+
 //void checkAssignOrExpr(AST_NODE* assignOrExprRelatedNode)
 //{
 //  AST_NODE *assignExpr = assignOrExprRelatedNode->child;
@@ -259,7 +245,7 @@ void gen_processProgramNode(AST_NODE *programNode)
 //  AST_NODE *blockNode = condNode->rightSibling;
 //  processExprRelatedNode(condNode);
 //  openScope();
-//  processBlockNode(blockNode);
+//  gen_processBlockNode(blockNode);
 //  closeScope();
 //}
 //
@@ -287,7 +273,7 @@ void gen_processProgramNode(AST_NODE *programNode)
 //    incrNode = incrNode->rightSibling;
 //  }
 //  openScope();
-//  processBlockNode(stmtNode);
+//  gen_processBlockNode(stmtNode);
 //  closeScope();
 //}
 //
@@ -305,11 +291,11 @@ void gen_processProgramNode(AST_NODE *programNode)
 //  AST_NODE* blockNode1 = exprNode->rightSibling;
 //  AST_NODE* blockNode2 = blockNode1->rightSibling;
 //  openScope();
-//  processBlockNode(blockNode1);
+//  gen_processBlockNode(blockNode1);
 //  closeScope();
 //  if (blockNode2->nodeType == BLOCK_NODE) {
 //    openScope();
-//    processBlockNode(blockNode2);
+//    gen_processBlockNode(blockNode2);
 //    closeScope();
 //  }
 //}
@@ -756,40 +742,41 @@ void gen_processProgramNode(AST_NODE *programNode)
 //    }
 //  }
 //}
-//
-//void processBlockNode(AST_NODE* blockNode)
-//{
-//  AST_NODE* child = blockNode->child;
-//  while (child) {
-//    switch(child->nodeType){
-//      case VARIABLE_DECL_LIST_NODE:
-//      {
-//        AST_NODE* varDeclNode = child->child;
-//        while (varDeclNode) {
-//          processDeclarationNode(varDeclNode);
-//          varDeclNode = varDeclNode->rightSibling;
-//        }
-//        break;
-//      }
-//      case STMT_LIST_NODE:
-//      {
-//        AST_NODE* stmtNode = child->child;
-//        while (stmtNode) {
-//          processStmtNode(stmtNode);
-//          stmtNode = stmtNode->rightSibling;
-//        }
-//        break;
-//      }
-//      default: 
-//      {
-//        assert(0);
-//      }
-//    }
-//    child = child->rightSibling;
-//  }
-//}
-//
-//
+
+void gen_processBlockNode(AST_NODE* blockNode)
+{
+  AST_NODE* child = blockNode->child;
+  while (child) {
+    switch(child->nodeType){
+      case VARIABLE_DECL_LIST_NODE:
+      {
+        AST_NODE* varDeclNode = child->child;
+        while (varDeclNode) {
+          gen_processDeclarationNode(varDeclNode);
+          varDeclNode = varDeclNode->rightSibling;
+        }
+        break;
+      }
+      //case STMT_LIST_NODE:
+      //{
+      //  AST_NODE* stmtNode = child->child;
+      //  while (stmtNode) {
+      //    processStmtNode(stmtNode);
+      //    stmtNode = stmtNode->rightSibling;
+      //  }
+      //  break;
+      //}
+      default: 
+      {
+        break;
+        assert(0);
+      }
+    }
+    child = child->rightSibling;
+  }
+}
+
+
 //void processStmtNode(AST_NODE* stmtNode)
 //{
 //  switch(stmtNode->semantic_value.stmtSemanticValue.kind){
@@ -830,39 +817,24 @@ void gen_processProgramNode(AST_NODE *programNode)
 //  }
 //}
 //
-//void processDeclDimList(AST_NODE* idNode, TypeDescriptor* typeDescriptor, int ignoreFirstDimSize)
-//{ 
-//  if (idNode->semantic_value.identifierSemanticValue.kind == NORMAL_ID) {
-//    typeDescriptor->kind = SCALAR_TYPE_DESCRIPTOR;
-//  } else if (idNode->semantic_value.identifierSemanticValue.kind == ARRAY_ID) {
-//    if (typeDescriptor->properties.dataType == VOID_TYPE) {
-//      printErrorMsg(idNode, TYPEDEF_VOID_ARRAY);
-//    }
-//    typeDescriptor->kind = ARRAY_TYPE_DESCRIPTOR;
-//    AST_NODE *dimNode = idNode->child;
-//    int dim = 0;
-//    while (dimNode) {
-//      if (dim == MAX_ARRAY_DIMENSION) {
-//        printErrorMsg(idNode, EXCESSIVE_ARRAY_DIM_DECLARATION);
-//        break;
-//      }
-//      if (dimNode->nodeType != NUL_NODE) {
-//        processExprRelatedNode(dimNode);
-//        evaluateExprValue(dimNode);
-//        if (dimNode->dataType != INT_TYPE) {
-//          printErrorMsg(dimNode, ARRAY_SIZE_NOT_INT);
-//          break;
-//        }
-//        if (dimNode->semantic_value.exprSemanticValue.constEvalValue.iValue < 0) {
-//          printErrorMsg(dimNode, ARRAY_SIZE_NEGATIVE);
-//          break;
-//        }
-//      }
-//      typeDescriptor->properties.arrayProperties.sizeInEachDimension[dim] 
-//        = dimNode->semantic_value.exprSemanticValue.constEvalValue.iValue;
-//      ++dim;
-//      dimNode = dimNode->rightSibling;
-//    }
-//    typeDescriptor->properties.arrayProperties.dimension = dim;
-//  }
-//}
+void gen_processDeclDimList(AST_NODE* idNode, TypeDescriptor* typeDescriptor, int ignoreFirstDimSize)
+{ 
+  if (idNode->semantic_value.identifierSemanticValue.kind == NORMAL_ID) {
+    typeDescriptor->kind = SCALAR_TYPE_DESCRIPTOR;
+  } else if (idNode->semantic_value.identifierSemanticValue.kind == ARRAY_ID) {
+    typeDescriptor->kind = ARRAY_TYPE_DESCRIPTOR;
+    AST_NODE *dimNode = idNode->child;
+    int dim = 0;
+    while (dimNode) {
+      if (dimNode->nodeType != NUL_NODE) {
+        processExprRelatedNode(dimNode);
+        evaluateExprValue(dimNode);
+      }
+      typeDescriptor->properties.arrayProperties.sizeInEachDimension[dim] 
+        = dimNode->semantic_value.exprSemanticValue.constEvalValue.iValue;
+      ++dim;
+      dimNode = dimNode->rightSibling;
+    }
+    typeDescriptor->properties.arrayProperties.dimension = dim;
+  }
+}

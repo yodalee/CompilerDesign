@@ -158,6 +158,7 @@ struct AST_NODE {
 	AST_TYPE nodeType;
     DATA_TYPE dataType;
 	int linenumber;
+    int place;
 	union {
         IdentifierSemanticValue identifierSemanticValue;
         STMTSemanticValue stmtSemanticValue;

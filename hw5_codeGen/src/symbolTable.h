@@ -83,6 +83,7 @@ typedef struct SymbolTable
 {
   SymbolTableEntry* hashTable[HASH_TABLE_SIZE];
   SymbolTableEntry** scopeDisplay;
+  int offset;
   struct SymbolTable *nextTable;
 } SymbolTable;
 

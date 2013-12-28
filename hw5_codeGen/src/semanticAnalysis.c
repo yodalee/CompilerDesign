@@ -516,7 +516,7 @@ void checkWriteFunction(AST_NODE* functionCallNode)
     paramNode = exprNode->child;
     if (paramNode->rightSibling) {
       printErrorMsg(functionCallNode->child, TOO_MANY_ARGUMENTS);
-    } else if (paramNode->nodeType != CONST_VALUE_NODE) {
+    } else if (paramNode->nodeType == CONST_VALUE_NODE) {
       if (paramNode->semantic_value.const1->const_type != STRINGC) {
         printErrorMsg(functionCallNode->child, PARAMETER_TYPE_UNMATCH);
       }
